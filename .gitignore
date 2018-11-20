@@ -1,0 +1,8 @@
+.Rhistory
+*.Rproj
+.Rproj.user
+.DS_Store
+*.swp
+README.html
+working
+
