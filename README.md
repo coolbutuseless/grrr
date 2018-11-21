@@ -8,6 +8,13 @@
 This package can change default arguments in pre-existing functions to
 be almost anything.
 
+## Installation
+
+``` r
+# install.packages("devtools")
+devtools::install_github("coolbutuseless/grrr")
+```
+
 ## Example 1: Change `mean` to use `na.rm = TRUE` by default
 
 A call to `mean` will not remove `NA` values from the input i.e. `na.rm
