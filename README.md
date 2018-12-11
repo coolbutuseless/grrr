@@ -9,11 +9,13 @@ status](https://travis-ci.org/coolbutuseless/grrr.svg?branch=master)](https://tr
 status](https://ci.appveyor.com/api/projects/status/github/coolbutuseless/grrr?branch=master&svg=true)](https://ci.appveyor.com/project/coolbutuseless/grrr)
 ![](https://img.shields.io/badge/CRAN-Never-blue.svg)
 
-`R` has some default arguments that can make programming -
-`stringsAsFactors = TRUE` immediately springs to mind.
+Things that make you go “grrr\!”.
 
-This package offers a way modify default arguments in functions to be
-almost anything, and as such is a *tool* for exploring:
+`R` has some default arguments that can make programming frustrating and
+error-prone - `stringsAsFactors = TRUE` immediately springs to mind.
+
+This package offers a way to modify default arguments to functions and
+is a tool for exploring:
 
   - how dependent are the core packages on these arguments being the
     default value
@@ -22,22 +24,22 @@ almost anything, and as such is a *tool* for exploring:
 
 ## Features
 
-The package offers three main features:
+The package offers three main functions:
 
-  - `default_args_to_global_env()` reads the default arguments from a
-    function and places their values in the global environment. This is
+  - `default_args_to_global_env()` - read the default arguments from a
+    function and place their values in the global environment. This is
     useful for debugging.
-  - `update_function_arguments()` - for full control of overwriting
-    default arguments in functions (even within packages\!)
-  - `set_sentinel_on_default_arg()` - a wrapper around
-    `update_function_arguments` to adjust a function to simplify notify
-    you when it’s using a default argument.
+  - `update_function_arguments()` - overwrite default arguments in
+    functions (even within packages\!)
+  - `set_sentinel_on_default_arg()` - adjust a function to simplify
+    notify you when it’s using a default argument.
 
 ## <span style="color: red;">Warning<span>
 
-Use `grrr` at your own risk\! Changing default arguments for functions
-within packages is an absolute minefield and *will* causes problems if
-you aren’t careful.
+Use `grrr` at your own risk\!
+
+Changing default arguments for functions is fraught with danger and will
+causes problems if you aren’t *extremely* careful.
 
 ## Installation
 
@@ -128,14 +130,13 @@ discover *where* they are being used.
 `set_sentinel_on_default_arg()` is a wrapper around
 `update_function_arguments()` that will rewrite the default argument so
 that it prints a message and call-stack whenever the function is called
-without overriding the default.
+and the default argument has not been specified by the user.
 
 E.g. to make `data.frame()` noisy so that the user is notified whenever
 an attempt was made to use the function without explicitly setting
-`stringsAsFactors`.  
-The function will still use the default value - it will just be noisier
-when it
-does
+`stringsAsFactors`. The function will still use the default value - it
+will just be noisier when it
+does.
 
 ``` r
 grrr::set_sentinel_on_default_arg('data.frame', 'stringsAsFactors', package_name = 'base')
@@ -153,12 +154,14 @@ data.frame(x = 1:3, y = c('a', 'b', 'c'))
 
 ## Another Warning for People Who Didn’t Read the First Warning
 
-This package uses `unlockBinding()` and `assignInNamespace()` and messes
-with the internals of other packages which is generally frowned upon.
+This package uses `unlockBinding()` and `assignInNamespace()` and can
+mess with the internals of other packages. This is generally frowned
+upon.
 
 Furthermore, `assignInNamespace()` actually has some checks to prevent
-what I’m trying to do. Which is why `grrr` includes
-`sudo_assignInNamespace()` which drops some sanity checks.
+what this package tries to do\! This is why `grrr` includes
+`sudo_assignInNamespace()` which drops some sanity checks and and allows
+us to stomp all over other packages and namespaces.
 
-Because of these naughty things the package has to do, `grrr` will never
-appear on CRAN.
+Because of these devilish things the package has to do, `grrr` will
+never appear on CRAN.
