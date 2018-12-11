@@ -5,10 +5,16 @@
 #'
 #' @inheritParams get_default_args
 #'
+#' @examples
+#' \dontrun{
+#' # Put all the default arguments for 'rnorm' into the global environment
+#' default_args_to_global_env(function_name = 'rnorm')
+#' }
+#'
 #' @export
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-default_args_to_global_env <- function(func_name, package_name=NULL) {
-  default_args <- get_default_args(func_name, package_name)
+default_args_to_global_env <- function(function_name, package_name=NULL) {
+  default_args <- get_default_args(function_name, package_name)
 
   for (i in seq_along(default_args)) {
     x     <- names(default_args)[i]

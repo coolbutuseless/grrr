@@ -4,14 +4,21 @@
 \alias{default_args_to_global_env}
 \title{Extract default arguments for a function into the global environment}
 \usage{
-default_args_to_global_env(func_name, package_name = NULL)
+default_args_to_global_env(function_name, package_name = NULL)
 }
 \arguments{
-\item{func_name}{string. name of function.}
+\item{function_name}{string. name of function.}
 
 \item{package_name}{string. name of package to fetch function from.
 if NULL, use current environment. default: NULL}
 }
 \description{
 Extract default arguments for a function into the global environment
+}
+\examples{
+\dontrun{
+# Put all the default arguments for 'rnorm' into the global environment
+default_args_to_global_env(function_name = 'rnorm')
+}
+
 }

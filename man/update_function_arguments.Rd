@@ -25,3 +25,11 @@ TRUE otherwise should throw an error
 If the function is specified within a package, then update the function
 within the namespace of the package.
 }
+\examples{
+\dontrun{
+Change the default value for `mean` from `0` to `100`
+update_function_arguments(function_name = 'rnorm', package_name = 'stats', mean = 100)
+}
+
+
+}

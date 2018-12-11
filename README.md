@@ -1,31 +1,43 @@
+
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 # `grrr`: A package for modifying default arguments <img src="man/figures/grrr.png" width = "15%" align="right"/>
 
-`R` has some default arguments that can make programming with R annoying
-- `stringsAsFactors = TRUE` immediately springs to mind.
+[![Travis build
+status](https://travis-ci.org/coolbutuseless/grrr.svg?branch=master)](https://travis-ci.org/coolbutuseless/grrr)
+[![AppVeyor build
+status](https://ci.appveyor.com/api/projects/status/github/coolbutuseless/grrr?branch=master&svg=true)](https://ci.appveyor.com/project/coolbutuseless/grrr)
+![](https://img.shields.io/badge/CRAN-Never-blue.svg)
 
-This package can modify default arguments in pre-existing functions to
-be almost anything, and as such is a *tool* for exploring:
+`R` has some default arguments that can make programming -
+`stringsAsFactors = TRUE` immediately springs to mind.
+
+This package offers a way modify default arguments in functions to be
+almost anything, and as such is a *tool* for exploring:
 
   - how dependent are the core packages on these arguments being the
     default value
   - how to find places in your code (and in package code) where default
     arguments have been used.
 
-# <span style="color: red;">Warning<span>
+## Features
 
-Use `grrr` at your own risk\! Changing default arguments for the core
-packages is an absolute minefield and *will* causes problems if you
-aren’t careful.
+The package offers three main features:
 
-The first 2 examples illustrate the basics of replacing default
-arguments in core packages, although **you are strongly advised against
-doing this** except for testing purposes.
+  - `default_args_to_global_env()` reads the default arguments from a
+    function and places their values in the global environment. This is
+    useful for debugging.
+  - `update_function_arguments()` - for full control of overwriting
+    default arguments in functions (even within packages\!)
+  - `set_sentinel_on_default_arg()` - a wrapper around
+    `update_function_arguments` to adjust a function to simplify notify
+    you when it’s using a default argument.
 
-The third example shows the reason I wrote `grrr`: i.e. have R print out
-the callstack whenever a default argument is used, and keep processing
-the function call using the default.
+## <span style="color: red;">Warning<span>
+
+Use `grrr` at your own risk\! Changing default arguments for functions
+within packages is an absolute minefield and *will* causes problems if
+you aren’t careful.
 
 ## Installation
 
@@ -34,58 +46,78 @@ the function call using the default.
 devtools::install_github("coolbutuseless/grrr")
 ```
 
-## Basic Usage 1: Change `mean` to use `na.rm = TRUE` by default
+## Putting default args into the global environment
 
-A call to `mean` will not remove `NA` values from the input i.e. `na.rm
-= FALSE`.
+`default_args_to_global_env()` copies all of the default arguments for a
+function into the global environment.
 
-We can switch this default to `na.rm = TRUE` so that `NA` values are
-*always* removed:
-
-``` r
-# Change the default value for `na.rm` from `FALSE` to `TRUE`
-grrr::update_function_arguments('mean.default', 'base', na.rm=TRUE)
-
-mean(c(1, 3, 5, NA))
-#> [1] 3
-```
-
-While this may be the desired behaviour on your local machine, it will
-break every other script that assumes the default action\!
-
-<span style="color: red;">**You are strongly advised against doing
-this** except for testing
-purposes.</span>
-
-## Basic Usage 2: Change `quantile` to not have a default value for `na.rm`
-
-A problem with changing the default value to be different, is that while
-the code may work on your machine, it will still have the old behaviour
-for any one else running the code.
-
-A safer way to change the default value may be to remove it altogether\!
-
-This way, users are forced to explicitly set a value every time the
-function is called.
-
-In the following call, the default value `na.rm` is removed, and thus an
-error will occur anytime we use the function without explictly setting
-the value.
+I find this handy when I’m debugging a function with a lot of default
+arguments that I don’t want to manually copy/define in order to run bits
+of code line-by-line in a function.
 
 ``` r
-# remove the default value for `na.rm`. i.e. force user to specify
-grrr::update_function_arguments('quantile.default', 'stats', na.rm=)
+ls()
+#> character(0)
 
-quantile(1:10)
-#> Error in quantile.default(1:10): argument "na.rm" is missing, with no default
+myfun <- function(a = 1, b = 2, c = 3, d = 4, e = 5) {
+  sum(c(a, b, c, d, e))
+}
+
+grrr::default_args_to_global_env(function_name = 'myfun')
+#> Assigning: a <- 1
+#> Assigning: b <- 2
+#> Assigning: c <- 3
+#> Assigning: d <- 4
+#> Assigning: e <- 5
+
+ls()
+#> [1] "a"     "b"     "c"     "d"     "e"     "myfun"
+
+a
+#> [1] 1
 ```
 
-While this may result in finding some errors you can fix, it is going to
-cause an avalanche of failures for other functions (e.g. within
-packages) which assume that the original default value is being used\!
+## Change the value of a default argument to a function
+
+`update_function_arguments()` will change the default values for an
+argument to any function in the current environment, or within a
+package.
+
+E.g. in the following code, we change the builtin `rnorm()` function to
+have `mean = 100` rather than the default of `mean = 0`
+
+``` r
+set.seed(1); stats::rnorm(5)
+#> [1] -0.6264538  0.1836433 -0.8356286  1.5952808  0.3295078
+
+# Change the default value for `mean` from `0` to `100`
+grrr::update_function_arguments(function_name = 'rnorm', package_name = 'stats', mean = 100)
+
+set.seed(1); stats::rnorm(5)
+#> [1]  99.37355 100.18364  99.16437 101.59528 100.32951
+```
+
+We can also *remove* the default for `mean` altogether so that it has to
+be specified every time the function is called
+
+``` r
+# Remove the default value for `mean` 
+grrr::update_function_arguments(function_name = 'rnorm', package_name = 'stats', mean =)
+
+set.seed(1); stats::rnorm(5)
+```
+
+    Error in stats::rnorm(5) : 
+      argument "mean" is missing, with no default
 
 <span style="color: red;">**You are strongly advised against doing
-this** except for testing purposes.</span>
+this**.</span>
+
+  - While this may be the desired behaviour on your local machine, it
+    will break every other script that assumes the default action.
+  - This is going to cause an avalanche of failures for other functions
+    (e.g. within packages where you can’t easily change the code) which
+    assume that the original default value is being used.
 
 ## Debug usage: Print warnings and callstack when defaults are used
 
@@ -93,59 +125,40 @@ The best(?) usage for `grrr` will come from using it for debugging in
 such a way that the default arguments are still used, but you can
 discover *where* they are being used.
 
-In this example, the `stringsAsFactors` argument to `data.frame()` is
-being changed to print a message if an explicit value isn’t given (but
-it will still go ahead and use the default anyway).
+`set_sentinel_on_default_arg()` is a wrapper around
+`update_function_arguments()` that will rewrite the default argument so
+that it prints a message and call-stack whenever the function is called
+without overriding the default.
 
-This way, you will be notified when/where it happens, but no error will
-occur.
-
-``` r
-# Print a message if 'stringsAsFactors' default is used
-grrr::update_function_arguments(
-  function_name    = 'data.frame', 
-  package_name     = 'base', 
-  stringsAsFactors = { 
-    message("Using default 'stringsAsFactors = TRUE':\n\t>>  ",  
-            paste(
-              lapply(sys.calls(), deparse, width.cutoff = 500), 
-              collapse = " \n\t>>  ")
-    ); 
-    default.stringsAsFactors() 
-  }  
-)
-```
+E.g. to make `data.frame()` noisy so that the user is notified whenever
+an attempt was made to use the function without explicitly setting
+`stringsAsFactors`.  
+The function will still use the default value - it will just be noisier
+when it
+does
 
 ``` r
+grrr::set_sentinel_on_default_arg('data.frame', 'stringsAsFactors', package_name = 'base')
+
 data.frame(x = 1:3, y = c('a', 'b', 'c'))
 ```
 
-``` r
-Using default 'stringsAsFactors = TRUE':
-    >>  data.frame(x = 1:3, y = c("a", "b", "c"))
+    Using default argument for 'stringsAsFactors' in function 'data.frame':
+        >>  data.frame(x = 1:3, y = c("a", "b", "c"))
+    
+      x y
+    1 1 a
+    2 2 b
+    3 3 c
 
-  x y
-1 1 a
-2 2 b
-3 3 c
-```
-
-# FAQ
-
-## Why not just re-assign the function in the global namespace?
-
-Because that won’t fix places which call the function explicitly e.g.
-`stats::quantile()`
-
-## Why not use `purrr::partial()`?
-
-Because that won’t change the function where it lives.
-
-# <span style="color: red;">Another Warning<span>
+## Another Warning for People Who Didn’t Read the First Warning
 
 This package uses `unlockBinding()` and `assignInNamespace()` and messes
 with the internals of other packages which is generally frowned upon.
 
 Furthermore, `assignInNamespace()` actually has some checks to prevent
-what I’m trying to do. So there is now `grrr::sudo_assignInNamespace()`
-which drops some sanity checks. \#madness
+what I’m trying to do. Which is why `grrr` includes
+`sudo_assignInNamespace()` which drops some sanity checks.
+
+Because of these naughty things the package has to do, `grrr` will never
+appear on CRAN.

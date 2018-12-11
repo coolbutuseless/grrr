@@ -2,7 +2,7 @@
 #-----------------------------------------------------------------------------
 #' Get the complete list of all formal arguments for the given function.
 #'
-#' @param func_name string. name of function.
+#' @param function_name string. name of function.
 #' @param package_name string. name of package to fetch function from.
 #'                     if NULL, use current environment. default: NULL
 #'
@@ -10,11 +10,11 @@
 #'
 #' @export
 #-----------------------------------------------------------------------------
-get_formal_args <- function(func_name, package_name=NULL) {
+get_formal_args <- function(function_name, package_name=NULL) {
   if (is.null(package_name)) {
-    func <- get(func_name)
+    func <- get(function_name)
   } else {
-    func <- get(func_name, envir = asNamespace(package_name))
+    func <- get(function_name, envir = asNamespace(package_name))
   }
   if (is.function(func)) {
     res <- formals(func)
@@ -33,17 +33,14 @@ get_formal_args <- function(func_name, package_name=NULL) {
 #-----------------------------------------------------------------------------
 #' Get the default arguments for the given function.
 #'
-#' @param func_name string. name of function.
-#' @param package_name string. name of package to fetch function from.
-#'                     if NULL, use current environment. default: NULL
-#'
+#' @inheritParams get_formal_args
 #'
 #' @return NULL if there are no default arguments for the given function
 #'
 #' @export
 #-----------------------------------------------------------------------------
-get_default_args <- function(func_name, package_name=NULL) {
-  formal_args  <- get_formal_args(func_name, package_name)
+get_default_args <- function(function_name, package_name=NULL) {
+  formal_args  <- get_formal_args(function_name, package_name)
   if (is.null(formal_args)) { return(NULL) }
   formal_args  <- as.list(formal_args)
   default_args <- formal_args[formal_args != '']

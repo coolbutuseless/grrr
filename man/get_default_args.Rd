@@ -4,10 +4,10 @@
 \alias{get_default_args}
 \title{Get the default arguments for the given function.}
 \usage{
-get_default_args(func_name, package_name = NULL)
+get_default_args(function_name, package_name = NULL)
 }
 \arguments{
-\item{func_name}{string. name of function.}
+\item{function_name}{string. name of function.}
 
 \item{package_name}{string. name of package to fetch function from.
 if NULL, use current environment. default: NULL}
